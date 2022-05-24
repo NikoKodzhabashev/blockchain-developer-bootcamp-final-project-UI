@@ -60,18 +60,17 @@ function App() {
 
   const onSubmit = async (data) => {
     setLoading(true);
-
     try {
       const res = await pinFileToIPFS(file);
       await smartContract().createCampaign(
-        new Date(data.expireOf).getTime(),
+        new Date(data.expireOf).getTime() / 1000,
         utils.parseEther(data.goal),
         data.title,
         data.description,
         res.data.IpfsHash
       );
       toast.success(
-        "Successfully created new campaign. Please wait a few seconds and refresh the page."
+        "Successfully created new campaign. Please wait for the transaction to be mined."
       );
     } catch (error) {
       toast.error(
@@ -91,13 +90,16 @@ function App() {
         value: utils.parseEther(data.amount),
       });
       toast.success(
-        "Successfully donated to the campaign. Please wait a few seconds and refresh the page."
+        "Successfully donated to the campaign. Please wait for the transaction to be mined."
       );
     } catch (error) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+      toast.error(
+        error.data.message || "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
       setOpen(false);
+      setDonateId(null);
     }
   };
 
@@ -121,11 +123,35 @@ function App() {
     status === "initializing" ||
     status === "connecting";
 
+  const setCampaigns = async () => {
+    const campaigns = await smartContract().getAllCampaigns();
+    const myCampaigns = await smartContract().getAllCampaignsByAddress();
+    const ids = myCampaigns.map((campaign) => parseInt(campaign.id));
+    const filtratedCampaigns = campaigns.filter(
+      (campaign) => !ids.includes(parseInt(campaign.id))
+    );
+    setFundRaises(filtratedCampaigns);
+  };
   React.useEffect(() => {
     (async () => {
-      const result = await smartContract().getAllCampaigns();
-      setFundRaises(result);
+      if (account) {
+        await setCampaigns();
+      }
     })();
+  }, [account]);
+
+  React.useEffect(() => {
+    smartContract()
+      .on("FundRaiseCreate", () => {
+        (async () => {
+          await setCampaigns();
+        })();
+      })
+      .on("FundRaiseDonate", () => {
+        (async () => {
+          await setCampaigns();
+        })();
+      });
   }, []);
 
   return (
@@ -186,9 +212,16 @@ function App() {
 
         <Grid container spacing={2}>
           {fundRaises.map((fundRaise) => {
+            const isCompleted =
+              new Date().getTime() >=
+                parseInt(fundRaise.expireOf._hex) * 1000 ||
+              fundRaise.status === 1;
+
             return (
               <Campaign
+                key={fundRaise.id}
                 fundRaise={fundRaise}
+                isCompleted={isCompleted}
                 action={
                   <CardActions>
                     <Button
@@ -291,7 +324,7 @@ function App() {
                 }}
                 render={({ field: { onChange, value } }) => (
                   <TextField
-                    type="date"
+                    type="datetime-local"
                     required
                     label={"Expire of"}
                     error={Boolean(errors.expireOf)}

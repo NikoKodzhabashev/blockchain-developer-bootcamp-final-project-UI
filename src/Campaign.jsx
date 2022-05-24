@@ -1,14 +1,7 @@
 import { utils } from "ethers/";
-import {
-  Typography,
-  Grid,
-  Box,
-  CardMedia,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Typography, Grid, CardMedia, Card, CardContent } from "@mui/material";
 
-const Campaign = ({ fundRaise, action }) => {
+const Campaign = ({ fundRaise, isCompleted, action }) => {
   return (
     <Grid item xs={4}>
       <Card variant="outlined">
@@ -18,24 +11,32 @@ const Campaign = ({ fundRaise, action }) => {
             height="194"
             image={`https://gateway.pinata.cloud/ipfs/${fundRaise.ipfsHash}`}
           />
-          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-            <Box mr={2} mt={2}>
+          <Typography
+            sx={{ fontSize: 14, marginTop: "4px" }}
+            color="text.secondary"
+            gutterBottom
+          >
+            <span style={{ marginRight: "4px", marginTop: "4px" }}>
               Expire in:
-            </Box>
-            {new Date(parseInt(fundRaise.expireOf._hex)).toDateString()}
+            </span>
+            {new Date(
+              parseInt(fundRaise.expireOf._hex) * 1000
+            ).toLocaleString()}
           </Typography>
-          <Typography variant="h5" component="div">
-            {fundRaise.title}
+          <Typography sx={{ fontSize: 14 }}>
+            Status: {isCompleted ? "Completed" : "Active"}
+          </Typography>
+
+          <Typography variant="h5">{fundRaise.title}</Typography>
+          <Typography sx={{ mb: 1.5 }} color="text.secondary">
+            Goal: {utils.formatEther(fundRaise.goal)}
           </Typography>
           <Typography sx={{ mb: 1.5 }} color="text.secondary">
-            Goal: {parseInt(fundRaise.goal._hex)}
-          </Typography>
-          <Typography sx={{ mb: 1.5 }} color="text.secondary">
-            Current amount: {utils.formatEther(fundRaise.currentAmount._hex)}
+            Current amount: {utils.formatEther(fundRaise.currentAmount)}
           </Typography>
           <Typography variant="body2">{fundRaise.description}</Typography>
         </CardContent>
-        {action}
+        <>{action}</>
       </Card>
     </Grid>
   );

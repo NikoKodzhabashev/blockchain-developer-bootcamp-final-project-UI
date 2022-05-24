@@ -1,5 +1,4 @@
 import smartContract from "./contract.js";
-import { useMetaMask } from "metamask-react";
 import {
   Button,
   Grid,
@@ -13,27 +12,34 @@ import { ToastContainer, toast } from "react-toastify";
 
 const MyCampaigns = () => {
   const [fundRaises, setFundRaises] = React.useState([]);
-  const { account } = useMetaMask();
 
   React.useEffect(() => {
     (async () => {
-      const result = await smartContract().getAllCampaignsByAddress({
-        sender: account,
-      });
+      const result = await smartContract().getAllCampaignsByAddress();
       setFundRaises(result);
     })();
   }, []);
 
+  React.useEffect(() => {
+    smartContract().on("FundRaiseWithdraw", () => {
+      (async () => {
+        const result = await smartContract().getAllCampaignsByAddress();
+        setFundRaises(result);
+      })();
+    });
+  }, []);
+
   const withdrawTheAmount = async (campaignId) => {
     try {
-      const result = await smartContract().withdraw(campaignId);
-      toast.success("Successfully withdrawn the amount.");
+      await smartContract().withdraw(campaignId);
+      toast.success(
+        "Successfully withdrawn the amount. Please wait for the transaction to be mined."
+      );
     } catch (error) {
       toast.error(
         error.data.message,
         "Something went wrong. Please try again."
       );
-      console.log(error.data.message);
     }
   };
   return (
@@ -44,19 +50,37 @@ const MyCampaigns = () => {
         </Typography>
         <Grid container spacing={2}>
           {fundRaises.map((fundRaise) => {
+            const isCompleted =
+              new Date().getTime() >=
+                parseInt(fundRaise.expireOf._hex) * 1000 ||
+              fundRaise.status === 1;
+
             return (
               <Campaign
+                key={fundRaise.id}
                 fundRaise={fundRaise}
+                isCompleted={isCompleted}
                 action={
                   <CardActions>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        withdrawTheAmount(fundRaise.id);
-                      }}
-                    >
-                      Withdraw
-                    </Button>
+                    {isCompleted ? (
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          withdrawTheAmount(fundRaise.id);
+                        }}
+                      >
+                        Withdraw
+                      </Button>
+                    ) : (
+                      <Typography
+                        variant="overline"
+                        display="block"
+                        gutterBottom
+                        ml={2}
+                      >
+                        Can't be withdrawn
+                      </Typography>
+                    )}
                   </CardActions>
                 }
               />

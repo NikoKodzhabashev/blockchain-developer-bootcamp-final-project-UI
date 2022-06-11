@@ -9,9 +9,11 @@ import {
 import Campaign from "./Campaign.jsx";
 import React from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const MyCampaigns = () => {
   const [fundRaises, setFundRaises] = React.useState([]);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     (async () => {
@@ -44,6 +46,15 @@ const MyCampaigns = () => {
   };
   return (
     <>
+      <Button
+        sx={{ marginTop: "20px", marginLeft: "20px" }}
+        variant="contained"
+        onClick={() => {
+          navigate("/");
+        }}
+      >
+        Go Back
+      </Button>
       <Container maxWidth="lg">
         <Typography variant="h3" gutterBottom textAlign="center">
           Your Campaigns

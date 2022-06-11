@@ -229,6 +229,7 @@ function App() {
                   <CardActions>
                     <Button
                       size="small"
+                      disabled={isCompleted}
                       onClick={() => {
                         setDonateId(fundRaise.id);
                       }}

@@ -39,7 +39,7 @@ const MyCampaigns = () => {
       );
     } catch (error) {
       toast.error(
-        error.error.data.message,
+        error.error.data.originalError.message,
         "Something went wrong. Please try again."
       );
     }

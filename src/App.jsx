@@ -74,7 +74,8 @@ function App() {
       );
     } catch (error) {
       toast.error(
-        error.error.data.message || "Something went wrong. Please try again."
+        error.error.data.originalError.message ||
+          "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -95,7 +96,8 @@ function App() {
     } catch (error) {
       debugger;
       toast.error(
-        error.error.data.message || "Something went wrong. Please try again."
+        error.error.data.originalError.message ||
+          "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);

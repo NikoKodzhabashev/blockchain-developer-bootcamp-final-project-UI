@@ -74,7 +74,7 @@ function App() {
       );
     } catch (error) {
       toast.error(
-        error.data.message || "Something went wrong. Please try again."
+        error.error.data.message || "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -93,8 +93,9 @@ function App() {
         "Successfully donated to the campaign. Please wait for the transaction to be mined."
       );
     } catch (error) {
+      debugger;
       toast.error(
-        error.data.message || "Something went wrong. Please try again."
+        error.error.data.message || "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
